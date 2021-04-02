@@ -17,14 +17,15 @@ Already have .NET 5 installed on the target machine? Even better. Just download 
 
 ### Usage
 This tool works by connecting to an IMAP server, going through all the messages in your inbox, checking if they match some criteria and if so, move that message to a folder.\
+The most common usage will probably be to run this tool via a cronjob at certain intervals.\
 Here's an example usage:\
 `./MailSort -h imap.gmail.com -u your@username.com -p very_secure -s -c /path/to/config/file.json`\
 or for more clarity\
 `./MailSort --host imap.gmail.com --username your@username.com --password very_secure --ssl --config /path/to/config/file.json`\
 All of those flags arguments are mandatory, except for the -s/--ssl flag. It specifies whether or not to connect to the IMAP server using SSL (port 993) and is on by default.\
-The most common usage will probably be to run this tool via a cronjob at certain intervals.
+Please make sure you have the correct credentials to authenticate with the IMAP server. For example, Gmail users will no be able to authenticate with their Google password, they will need to generate and supply an application-specific password.
 
-The config file is a JSON file where you define your rules. Here's an example:\
+The config file is a JSON file where you define your rules. Here's an example:
 ```json
 [
   {
