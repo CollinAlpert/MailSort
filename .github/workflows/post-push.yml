@@ -1,0 +1,169 @@
+name: Post-push actions
+
+# Run workflow only on commits to `master`
+on:
+  push:
+    paths:
+      - '**.cs'
+      - '**.csproj'
+    branches:
+      - master
+
+jobs:
+  github_release:
+    name: Create GitHub release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v2
+
+      - name: Setup .NET Core SDK
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '5.0.102'
+
+      - name: Build project
+        run: dotnet build
+
+      - name: Get project infos
+        id: get-project-infos
+        run: echo "::set-output name=project_version::$(grep '<Version>' < MailSort.csproj | sed 's/.*<Version>\([0-9]*\.[0-9]*\.[0-9]*\)<\/Version>/\1/')" && echo "::set-output name=project_name::$(grep '<AssemblyName>' < MailSort.csproj | sed 's/.*<AssemblyName>\(.*\)<\/AssemblyName>/\1/')"
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.get-project-infos.outputs.project_version }}
+          release_name: ${{ steps.get-project-infos.outputs.project_version }}
+
+      - name: Create native Windows release
+        run: dotnet publish -r win-x64 -c Release -p:PublishSingleFile=true -p:PublishTrimmed=true --self-contained=true -p:IncludeNativeLibrariesInSingleFile=true
+
+      - name: Create native macOS release
+        run: dotnet publish -r osx-x64 -c Release -p:PublishSingleFile=true -p:PublishTrimmed=true --self-contained=true -p:IncludeNativeLibrariesForSelfExtract=true
+
+      - name: Create native Linux release
+        run: dotnet publish -r linux-x64 -c Release -p:PublishSingleFile=true -p:PublishTrimmed=true --self-contained=true
+
+      - name: Create native Linux ARM release
+        run: dotnet publish -r linux-arm -c Release -p:PublishSingleFile=true -p:PublishTrimmed=true --self-contained=true
+
+      - name: Create native Linux ARM 64 release
+        run: dotnet publish -r linux-arm64 -c Release -p:PublishSingleFile=true -p:PublishTrimmed=true --self-contained=true
+
+      - name: Upload native Windows asset
+        uses: actions/upload-release-asset@v1.0.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./bin/Release/net5.0/win-x64/publish/${{ steps.get-project-infos.outputs.project_name }}.exe
+          asset_name: ${{ steps.get-project-infos.outputs.project_name }}-native.exe
+          asset_content_type: application/vnd.microsoft.portable-executable
+
+      - name: Upload native macOS asset
+        uses: actions/upload-release-asset@v1.0.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./bin/Release/net5.0/osx-x64/publish/${{ steps.get-project-infos.outputs.project_name }}
+          asset_name: ${{ steps.get-project-infos.outputs.project_name }}-macos-native
+          asset_content_type: application/octet-stream
+
+      - name: Upload native Linux asset
+        uses: actions/upload-release-asset@v1.0.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./bin/Release/net5.0/linux-x64/publish/${{ steps.get-project-infos.outputs.project_name }}
+          asset_name: ${{ steps.get-project-infos.outputs.project_name }}-linux-native
+          asset_content_type: application/octet-stream
+
+      - name: Upload native Linux ARM asset
+        uses: actions/upload-release-asset@v1.0.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./bin/Release/net5.0/linux-arm/publish/${{ steps.get-project-infos.outputs.project_name }}
+          asset_name: ${{ steps.get-project-infos.outputs.project_name }}-linux-arm-native
+          asset_content_type: application/octet-stream
+
+      - name: Upload native Linux ARM 64 asset
+        uses: actions/upload-release-asset@v1.0.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./bin/Release/net5.0/linux-arm64/publish/${{ steps.get-project-infos.outputs.project_name }}
+          asset_name: ${{ steps.get-project-infos.outputs.project_name }}-linux-arm64-native
+          asset_content_type: application/octet-stream
+
+      - name: Create Windows release
+        run: dotnet publish -r win-x64 -c Release -p:PublishSingleFile=true --self-contained=false
+
+      - name: Create macOS release
+        run: dotnet publish -r osx-x64 -c Release -p:PublishSingleFile=true --self-contained=false
+
+      - name: Create Linux release
+        run: dotnet publish -r linux-x64 -c Release -p:PublishSingleFile=true -self-contained=false
+
+      - name: Create Linux ARM release
+        run: dotnet publish -r linux-arm -c Release -p:PublishSingleFile=true -self-contained=false
+
+      - name: Create Linux ARM 64 release
+        run: dotnet publish -r linux-arm64 -c Release -p:PublishSingleFile=true --self-contained=false
+
+      - name: Upload Windows asset
+        uses: actions/upload-release-asset@v1.0.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./bin/Release/net5.0/win-x64/publish/${{ steps.get-project-infos.outputs.project_name }}.exe
+          asset_name: ${{ steps.get-project-infos.outputs.project_name }}.exe
+          asset_content_type: application/vnd.microsoft.portable-executable
+
+      - name: Upload macOS asset
+        uses: actions/upload-release-asset@v1.0.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./bin/Release/net5.0/osx-x64/publish/${{ steps.get-project-infos.outputs.project_name }}
+          asset_name: ${{ steps.get-project-infos.outputs.project_name }}-macos
+          asset_content_type: application/octet-stream
+
+      - name: Upload Linux asset
+        uses: actions/upload-release-asset@v1.0.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./bin/Release/net5.0/linux-x64/publish/${{ steps.get-project-infos.outputs.project_name }}
+          asset_name: ${{ steps.get-project-infos.outputs.project_name }}-linux
+          asset_content_type: application/octet-stream
+
+      - name: Upload Linux ARM asset
+        uses: actions/upload-release-asset@v1.0.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./bin/Release/net5.0/linux-arm/publish/${{ steps.get-project-infos.outputs.project_name }}
+          asset_name: ${{ steps.get-project-infos.outputs.project_name }}-linux-arm
+          asset_content_type: application/octet-stream
+
+      - name: Upload Linux ARM 64 asset
+        uses: actions/upload-release-asset@v1.0.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./bin/Release/net5.0/linux-arm64/publish/${{ steps.get-project-infos.outputs.project_name }}
+          asset_name: ${{ steps.get-project-infos.outputs.project_name }}-linux-arm64
+          asset_content_type: application/octet-stream
