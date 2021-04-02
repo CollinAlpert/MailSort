@@ -2,6 +2,7 @@ name: Post-push actions
 
 # Run workflow only on commits to `master`
 on:
+  workflow_dispatch:
   push:
     paths:
       - '**.cs'
