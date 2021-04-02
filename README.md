@@ -22,6 +22,8 @@ Here's an example usage:\
 or for more clarity\
 `./MailSort --host imap.gmail.com --username your@username.com --password very_secure --ssl --config /path/to/config/file.json`\
 All of those flags arguments are mandatory, except for the -s/--ssl flag. It specifies whether or not to connect to the IMAP server using SSL (port 993) and is on by default.\
+The most common usage will probably be to run this tool via a cronjob at certain intervals.
+
 The config file is a JSON file where you define your rules. Here's an example:\
 ```json
 [
