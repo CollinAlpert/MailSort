@@ -15,7 +15,7 @@ Do you need to install .NET 5 to be able to run this tool? No.\
 Just download the native binary for your operating system and you're good to go.\
 Already have .NET 5 installed on the target machine? Even better. Just download the non-native binary and enjoy the smaller file size ;)
 
-###Usage
+### Usage
 This tool works by connecting to an IMAP server, going through all the messages in your inbox, checking if they match some criteria and if so, move that message to a folder.\
 Here's an example usage:\
 `./MailSort -h imap.gmail.com -u your@username.com -p very_secure -s -c /path/to/config/file.json`\
