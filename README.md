@@ -51,13 +51,20 @@ The config file is a JSON file where you define your rules. Here's an example:\
 ]
 ```
 Let's go through the fields.\
-id: Can be any string and can also be omitted. Only useful when wanting to refer to the rule in another rule.\
-haystack: The part of the email to search through. Possible values: subject, body, cc, bcc, sender, recipients\
-matchingMethod: The type of check to perform. Should the subject exactly match something, or is it enough if it contains it? Possible values: contains, equals, containsIgnoreCase, equalsIgnoreCase\
-needle: The phrase to search for in the haystack.\
-targetFolder: The folder to move the email to if it matches the criteria of the rule. Subfolders are currently not supported, but feel free to open a PR!\
-combineWith: Combine this rule with another rule (this is where the id comes into play). That way you can chain multiple rules to fine tune your sorting.\
-combinationMethod: How to logically combine the two rules. Possible values: logicalAnd, logicalOr.\
+id: Can be any string and can also be omitted. Only useful when wanting to refer to the rule in another rule.
+
+haystack: The part of the email to search through. Possible values: subject, body, cc, bcc, sender, recipients.
+
+matchingMethod: The type of check to perform. Should the subject exactly match something, or is it enough if it contains it? Possible values: contains, equals, containsIgnoreCase, equalsIgnoreCase.
+
+needle: The phrase to search for in the haystack.
+
+targetFolder: The folder to move the email to if it matches the criteria of the rule. Subfolders are currently not supported, but feel free to open a PR!
+
+combineWith: Combine this rule with another rule (this is where the id comes into play). That way you can chain multiple rules to fine tune your sorting.
+
+combinationMethod: How to logically combine the two rules. Possible values: logicalAnd, logicalOr.
+
 isCombinationRule: Specifies that this rule is only used in combination with another rule which references this one. This means you can omit the targetFolder.
 
 Once an email matches a rule, the email gets moved and the rest of the rules do not get evaluated, so the order of the rules may be important.
