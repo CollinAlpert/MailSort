@@ -76,6 +76,7 @@ Once an email matches a rule, the email gets moved and the rest of the rules do 
 This projekt uses open source software, each subject to their own license.
 
 #### MailKit
+```
 MIT License
 
 Copyright (C) 2013-2020 .NET Foundation and Contributors
@@ -97,3 +98,4 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
+```
