@@ -81,7 +81,7 @@ namespace MailSort
 					continue;
 				}
 
-				IMailFolder destinationFolder;
+				IMailFolder destinationFolder = null!;
 				try
 				{
 					destinationFolder = await imapClient.GetFolderAsync(tuple.Item2).ConfigureAwait(false);
@@ -89,7 +89,8 @@ namespace MailSort
 				catch (FolderNotFoundException)
 				{
 					var folders = await imapClient.GetFoldersAsync(imapClient.PersonalNamespaces[0]).ConfigureAwait(false);
-					throw new Exception($"The folder '{tuple.Item2}' was not found. The following folders are available: {string.Join(", ", folders.Select(f => f.Name))}");
+					Console.WriteLine($"The folder '{tuple.Item2}' was not found. The following folders are available: {string.Join(", ", folders.Select(f => f.Name))}");
+					Environment.Exit(1);
 				}
 					
 				await destinationFolder.OpenAsync(FolderAccess.ReadWrite).ConfigureAwait(false);
@@ -133,19 +134,6 @@ namespace MailSort
 				builder = CombinationMapping[nextCombinationMethod](builder, m => method(haystackMethod(m), rule.Needle));
 				nextCombinationMethod = rule.CombinationMethod;
 			}
-			
-			/*var haystackMethod = HaystackMapping[rule.Haystack];
-			var method = MethodMapping[rule.MatchingMethod];
-			builder = builder.And(m => method(haystackMethod(m), rule.Needle));
-			
-			for (int i = 0; i < rules.Count - 1; i++)
-			{
-				var oldCombination = rule.CombinationMethod;
-				rule = rules[i + 1];
-				haystackMethod = HaystackMapping[rule.Haystack];
-				method = MethodMapping[rule.MatchingMethod];
-				builder = CombinationMapping[oldCombination](builder, m => method(haystackMethod(m), rule.Needle));
-			}*/
 			
 			return builder.Compile();
 		}
