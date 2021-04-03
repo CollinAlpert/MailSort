@@ -18,5 +18,11 @@ namespace MailSort
 		
 		[Option('s', "ssl", Required = false, Default = true, HelpText = "Whether or not to connect to the IMAP server securely.")]
 		public bool UseSsl { get; set; }
+
+		[Option('l', "log", Required = false, Default = "imap.log", HelpText = "The file to log the protocol log to.")]
+		public string LogFile { get; set; } = null!;
+		
+		[Option("no-log", Required = false, Default = false, HelpText = "Do not create a log file with the protocol log.")]
+		public bool DontLog { get; set; }
 	}
 }

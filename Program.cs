@@ -59,7 +59,8 @@ namespace MailSort
 				rules.Where(r => !r.IsCombinationRule)
 					.Select(r => Tuple.Create(BuildPredicate(GetCombinedRules(r, new Queue<MailSortRule>(new[] { r }), rules)), r.TargetFolder)).ToList();
 			
-			using var imapClient = new ImapClient();
+			IProtocolLogger logger = config.DontLog ? new NullProtocolLogger() : new ProtocolLogger(config.LogFile);
+			using var imapClient = new ImapClient(logger);
 			await imapClient.ConnectAsync(config.Host, config.UseSsl ? EncryptedImapPort : ImapPort, config.UseSsl).ConfigureAwait(false);
 			await imapClient.AuthenticateAsync(config.Username, config.Password).ConfigureAwait(false);
 			
