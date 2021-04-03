@@ -22,7 +22,7 @@ namespace MailSort
 		{
 			[MatchingMethod.Contains] = (haystack, needle) => haystack.Contains(needle),
 			[MatchingMethod.Equals] = (haystack, needle) => haystack.Equals(needle),
-			[MatchingMethod.ContainsIgnoreCase] = (string haystack, string needle) => haystack.Contains(needle, StringComparison.CurrentCultureIgnoreCase),
+			[MatchingMethod.ContainsIgnoreCase] = (haystack, needle) => haystack.Contains(needle, StringComparison.CurrentCultureIgnoreCase),
 			[MatchingMethod.EqualsIgnoreCase] = (haystack, needle) => haystack.Equals(needle, StringComparison.CurrentCultureIgnoreCase)
 		};
 			
@@ -81,7 +81,7 @@ namespace MailSort
 					continue;
 				}
 
-				IMailFolder destinationFolder = null!;
+				IMailFolder destinationFolder;
 				try
 				{
 					destinationFolder = await imapClient.GetFolderAsync(tuple.Item2).ConfigureAwait(false);
@@ -89,8 +89,8 @@ namespace MailSort
 				catch (FolderNotFoundException)
 				{
 					var folders = await imapClient.GetFoldersAsync(imapClient.PersonalNamespaces[0]).ConfigureAwait(false);
-					Console.WriteLine($"The folder '{tuple.Item2}' was not found. The following folders are available: {string.Join(", ", folders.Select(f => f.Name))}");
-					Environment.Exit(1);
+					throw new Exception(
+						$"The folder '{tuple.Item2}' was not found. The following folders are available: {string.Join(", ", folders.Select(f => f.FullName))}");
 				}
 					
 				await destinationFolder.OpenAsync(FolderAccess.ReadWrite).ConfigureAwait(false);
@@ -102,9 +102,10 @@ namespace MailSort
 			}
 
 			await inbox.CloseAsync(true).ConfigureAwait(false);
+			await imapClient.DisconnectAsync(true).ConfigureAwait(false);
 		}
 
-		private static Queue<MailSortRule> GetCombinedRules(MailSortRule rule, Queue<MailSortRule> foundRules, List<MailSortRule> allRules)
+		private static Queue<MailSortRule> GetCombinedRules(MailSortRule rule, Queue<MailSortRule> foundRules, IReadOnlyList<MailSortRule> allRules)
 		{
 			if (string.IsNullOrWhiteSpace(rule.CombineWith))
 			{

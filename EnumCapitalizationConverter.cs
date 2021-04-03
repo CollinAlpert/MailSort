@@ -14,7 +14,7 @@ namespace MailSort
 				return @enum;
 			}
 
-			return default;
+			throw new Exception($"'{reader.GetString()}' is an incorrect value for '{typeToConvert.Name}'");
 		}
 
 		public override void Write(Utf8JsonWriter writer, TEnum value, JsonSerializerOptions options)
