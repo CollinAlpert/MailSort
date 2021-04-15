@@ -30,10 +30,14 @@ namespace MailSort
 		{
 			[Haystack.Subject] = m => m.Subject,
 			[Haystack.Body] = m => m.GetTextBody(TextFormat.Plain),
-			[Haystack.Cc] = m => string.Join(", ", m.Cc.Select(a => a.ToString())),
-			[Haystack.Bcc] = m => string.Join(", ", m.Bcc.Select(a => a.ToString())),
-			[Haystack.Sender] = m => string.Join(", ", m.From.Select(a => a.ToString())),
-			[Haystack.Recipients] = m => string.Join(", ", m.To.Select(a => a.ToString()))
+			[Haystack.Cc] = m => GetListHeader(m, message => message.Cc),
+			[Haystack.Bcc] = m => GetListHeader(m, message => message.Bcc),
+			[Haystack.Sender] = m => GetListHeader(m, message => message.From),
+			[Haystack.Recipients] = m => GetListHeader(m, message => message.To),
+			[Haystack.RecipientsAndCc] = m => string.Join(", ", GetListHeader(m, message => message.To), GetListHeader(m, message => message.Cc)),
+			[Haystack.RecipientsAndBcc] = m => string.Join(", ", GetListHeader(m, message => message.To), GetListHeader(m, message => message.Bcc)),
+			[Haystack.CcAndBcc] = m => string.Join(", ", GetListHeader(m, message => message.Cc), GetListHeader(m, message => message.Bcc)),
+			[Haystack.RecipientsAndCcAndBcc] = m => string.Join(", ", GetListHeader(m, message => message.To), GetListHeader(m, message => message.Cc), GetListHeader(m, message => message.Bcc)),
 		};
 
 		private static readonly IDictionary<CombinationMethod, Func<Expression<Func<MimeMessage, bool>>, Expression<Func<MimeMessage, bool>>, Expression<Func<MimeMessage, bool>>>> CombinationMapping = new Dictionary<CombinationMethod, Func<Expression<Func<MimeMessage, bool>>, Expression<Func<MimeMessage, bool>>, Expression<Func<MimeMessage, bool>>>>
@@ -75,6 +79,10 @@ namespace MailSort
 				}
 				
 				var message = await inbox.GetMessageAsync(summary.UniqueId).ConfigureAwait(false);
+				if (message == null)
+				{
+					continue;
+				}
 
 				var tuple = predicatesAndTargetFolders.FirstOrDefault(t => t.Item1(message));
 				if (tuple == null)
@@ -155,6 +163,11 @@ namespace MailSort
 			}
 
 			return rules;
+		}
+		
+		private static string GetListHeader(MimeMessage message, Func<MimeMessage, InternetAddressList> mapping)
+		{
+			return string.Join(", ", mapping(message).Select(x => x.ToString()));
 		}
 	}
 }

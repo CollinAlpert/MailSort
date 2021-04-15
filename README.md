@@ -8,7 +8,7 @@ This has a couple of drawbacks. Here are the two most prominent ones:
 2) In the current day and age, you probably check your email on more than one device. Not mail clients on mobile devices support creating rules. It is also hard to synchronize all the rules between your different mail clients.
 
 ### Implementation
-This tool is written using [MailKit](https://github.com/jstedfast/MailKit), an awesome .NET library for all email-related stuff, and .NET 5.
+This tool uses [MailKit](https://github.com/jstedfast/MailKit), an awesome .NET library for all email-related stuff, and .NET 5.
 
 ### Installation
 Do you need to install .NET 5 to be able to run this tool? No.\
@@ -56,7 +56,7 @@ The config file is a JSON file where you define your rules. Here's an example:
 Let's go through the fields.\
 `id`: Can be any string and can also be omitted. Only useful when wanting to refer to the rule in another rule.
 
-`haystack`: The part of the email to search through. Possible values: `subject`, `body`, `cc`, `bcc`, `sender`, `recipients`.
+`haystack`: The part of the email to search through. Possible values: `subject`, `body`, `cc`, `bcc`, `sender`, `recipients`, `recipientsAndCc`, `recipientsAndBcc`, `ccAndBcc`, `recipientsAndCcAndBcc`. When using a haystack which combines two attributes (e.g. recipientsAndCc), they will be chained together using a comma and a following space and then checked against your `needle`. Thus you should probably only use these methods with the `contains` or `containsIgnoreCase` `matchingMethod`.
 
 `matchingMethod`: The type of check to perform. Should the subject exactly match something, or is it enough if it contains it? Possible values: `contains`, `equals`, `containsIgnoreCase`, `equalsIgnoreCase`.
 

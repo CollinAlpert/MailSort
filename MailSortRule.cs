@@ -44,6 +44,6 @@ namespace MailSort
 
 	public enum Haystack
 	{
-		Subject, Body, Cc, Bcc, Sender, Recipients
+		Subject, Body, Cc, Bcc, Sender, Recipients, RecipientsAndCc, RecipientsAndBcc, CcAndBcc, RecipientsAndCcAndBcc
 	}
 }
