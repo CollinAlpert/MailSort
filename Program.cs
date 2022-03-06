@@ -65,12 +65,12 @@ namespace MailSort
 			
 			IProtocolLogger logger = config.DontLog ? new NullProtocolLogger() : new ProtocolLogger(config.LogFile);
 			using var imapClient = new ImapClient(logger);
-			await imapClient.ConnectAsync(config.Host, config.UseSsl ? EncryptedImapPort : ImapPort, config.UseSsl).ConfigureAwait(false);
-			await imapClient.AuthenticateAsync(config.Username, config.Password).ConfigureAwait(false);
+			await LoginAsync(imapClient, config).ConfigureAwait(false);
 			
 			var inbox = imapClient.Inbox;
 			await inbox.OpenAsync(FolderAccess.ReadWrite).ConfigureAwait(false);
-			var summaries = await inbox.FetchAsync(0, -1, MessageSummaryItems.UniqueId | MessageSummaryItems.InternalDate | MessageSummaryItems.Flags);
+			var fetchRequest = new FetchRequest(MessageSummaryItems.UniqueId | MessageSummaryItems.InternalDate | MessageSummaryItems.Flags);
+			var summaries = await inbox.FetchAsync(0, -1, fetchRequest).ConfigureAwait(false);
 			foreach (var summary in summaries)
 			{
 				if (summary.Flags!.Value.HasFlag(MessageFlags.Deleted))
@@ -101,17 +101,41 @@ namespace MailSort
 					throw new Exception(
 						$"The folder '{tuple.Item2}' was not found. The following folders are available: {string.Join(", ", folders.Select(f => f.FullName))}");
 				}
-					
-				await destinationFolder.OpenAsync(FolderAccess.ReadWrite).ConfigureAwait(false);
-				await destinationFolder.AppendAsync(message, summary.Flags!.Value, summary.InternalDate!.Value).ConfigureAwait(false);
-				await destinationFolder.CloseAsync().ConfigureAwait(false);
+
+				await AddMessageToFolderAsync(destinationFolder, message, summary.Flags!.Value, summary.InternalDate!.Value).ConfigureAwait(false);
 						
-				await inbox.OpenAsync(FolderAccess.ReadWrite).ConfigureAwait(false); 
-				await inbox.AddFlagsAsync(summary.UniqueId, MessageFlags.Deleted, true).ConfigureAwait(false);
+				//Make sure inbox is still open.
+				await inbox.OpenAsync(FolderAccess.ReadWrite).ConfigureAwait(false);
+
+				await DeleteOriginalMessageAsync(inbox, summary.UniqueId).ConfigureAwait(false);
 			}
 
 			await inbox.CloseAsync(true).ConfigureAwait(false);
 			await imapClient.DisconnectAsync(true).ConfigureAwait(false);
+		}
+
+		private static Task DeleteOriginalMessageAsync(IMailFolder inbox, UniqueId uniqueId)
+		{
+			var storeRequest = new StoreFlagsRequest(StoreAction.Add, MessageFlags.Deleted)
+			{
+				Silent = true
+			};
+
+			return inbox.StoreAsync(uniqueId, storeRequest);
+		}
+
+		private static async Task LoginAsync(IImapClient client, MailSortConfig config)
+		{
+			await client.ConnectAsync(config.Host, config.UseSsl ? EncryptedImapPort : ImapPort, config.UseSsl).ConfigureAwait(false);
+			await client.AuthenticateAsync(config.Username, config.Password).ConfigureAwait(false);
+		}
+
+		private static async Task AddMessageToFolderAsync(IMailFolder destinationFolder, MimeMessage message, MessageFlags flags, DateTimeOffset internalDate)
+		{
+			await destinationFolder.OpenAsync(FolderAccess.ReadWrite).ConfigureAwait(false);
+			var appendRequest = new AppendRequest(message, flags, internalDate);
+			await destinationFolder.AppendAsync(appendRequest).ConfigureAwait(false);
+			await destinationFolder.CloseAsync().ConfigureAwait(false);
 		}
 
 		private static Queue<MailSortRule> GetCombinedRules(MailSortRule rule, Queue<MailSortRule> foundRules, IReadOnlyList<MailSortRule> allRules)

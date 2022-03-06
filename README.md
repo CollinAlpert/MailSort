@@ -8,7 +8,7 @@ This has a couple of drawbacks. Here are the two most prominent ones:
 2) In the current day and age, you probably check your email on more than one device. Not mail clients on mobile devices support creating rules. It is also hard to synchronize all the rules between your different mail clients.
 
 ### Implementation
-This tool uses [MailKit](https://github.com/jstedfast/MailKit), an awesome .NET library for all email-related stuff, and .NET 5.
+This tool uses [MailKit](https://github.com/jstedfast/MailKit), an awesome .NET library for all email-related stuff, and .NET 6.
 
 ### Installation
 Do you need to install .NET 5 to be able to run this tool? No.\
