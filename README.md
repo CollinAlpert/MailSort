@@ -11,9 +11,9 @@ This has a couple of drawbacks. Here are the two most prominent ones:
 This tool uses [MailKit](https://github.com/jstedfast/MailKit), an awesome .NET library for all email-related stuff, and .NET 6.
 
 ### Installation
-Do you need to install .NET 5 to be able to run this tool? No.\
+Do you need to install .NET 6 to be able to run this tool? No.\
 Just download the native binary for your operating system and you're good to go.\
-Already have .NET 5 installed on the target machine? Even better. Just download the non-native binary and enjoy the smaller file size ;)
+Already have .NET 6 installed on the target machine? Even better. Just download the non-native binary and enjoy the smaller file size ;)
 
 ### Usage
 This tool works by connecting to an IMAP server, going through all the messages in your inbox, checking if they match some criteria and if so, move that message to a folder.\
