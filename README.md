@@ -56,9 +56,10 @@ The config file is a JSON file where you define your rules. Here's an example:
 Let's go through the fields.\
 `id`: Can be any string and can also be omitted. Only useful when wanting to refer to the rule in another rule.
 
-`haystack`: The part of the email to search through. Possible values: `subject`, `body`, `cc`, `bcc`, `sender`, `recipients`, `recipientsAndCc`, `recipientsAndBcc`, `ccAndBcc`, `recipientsAndCcAndBcc`. When using a haystack which combines two attributes (e.g. recipientsAndCc), they will be chained together using a comma and a following space and then checked against your `needle`. Thus you should probably only use these methods with the `contains` or `containsIgnoreCase` `matchingMethod`.
+`haystack`: The part of the email to search through. Possible values: `subject`, `body`, `cc`, `bcc`, `sender`, `recipients`, `recipientsAndCc`, `recipientsAndBcc`, `ccAndBcc`, `recipientsAndCcAndBcc`, `date` (yyyy-MM-dd). When using a haystack which combines two attributes (e.g. recipientsAndCc), they will be chained together using a comma and a following space and then checked against your `needle`. Thus you should probably only use these methods with the `contains` or `containsIgnoreCase` `matchingMethod`.\
+Fields like `sender` are sometimes represented in the typical IMAP format ("Name" <email@example.com>), so you might want to use the `contains` `matchingMethod` with these emails.
 
-`matchingMethod`: The type of check to perform. Should the subject exactly match something, or is it enough if it contains it? Possible values: `contains`, `equals`, `containsIgnoreCase`, `equalsIgnoreCase`.
+`matchingMethod`: The type of check to perform. Should the subject exactly match something, or is it enough if it contains it? Possible values: `contains`, `equals`, `containsIgnoreCase`, `equalsIgnoreCase`, `greaterThanOrEqual`. `greaterThanOrEqual` can currently only be used in combination with the needle `date`.
 
 `needle`: The phrase to search for in the `haystack`.
 

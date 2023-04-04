@@ -23,9 +23,10 @@ public class Program
 		[MatchingMethod.Contains] = (haystack, needle) => haystack.Contains(needle),
 		[MatchingMethod.Equals] = (haystack, needle) => haystack.Equals(needle),
 		[MatchingMethod.ContainsIgnoreCase] = (haystack, needle) => haystack.Contains(needle, StringComparison.CurrentCultureIgnoreCase),
-		[MatchingMethod.EqualsIgnoreCase] = (haystack, needle) => haystack.Equals(needle, StringComparison.CurrentCultureIgnoreCase)
+		[MatchingMethod.EqualsIgnoreCase] = (haystack, needle) => haystack.Equals(needle, StringComparison.CurrentCultureIgnoreCase),
+		[MatchingMethod.GreaterThanOrEqual] = (haystack, needle) => DateOnly.TryParse(haystack, out var hayStackDate) && DateOnly.TryParse(needle, out var needleDate) && hayStackDate >= needleDate
 	};
-			
+
 	private static readonly IDictionary<Haystack, Func<MimeMessage, string>> HaystackMapping = new Dictionary<Haystack, Func<MimeMessage, string>>
 	{
 		[Haystack.Subject] = m => m.Subject,
@@ -38,6 +39,7 @@ public class Program
 		[Haystack.RecipientsAndBcc] = m => string.Join(", ", GetListHeader(m, message => message.To), GetListHeader(m, message => message.Bcc)),
 		[Haystack.CcAndBcc] = m => string.Join(", ", GetListHeader(m, message => message.Cc), GetListHeader(m, message => message.Bcc)),
 		[Haystack.RecipientsAndCcAndBcc] = m => string.Join(", ", GetListHeader(m, message => message.To), GetListHeader(m, message => message.Cc), GetListHeader(m, message => message.Bcc)),
+		[Haystack.Date] = m => m.Date.ToString("yyyy-MM-dd")
 	};
 
 	private static readonly IDictionary<CombinationMethod, Func<Expression<Func<MimeMessage, bool>>, Expression<Func<MimeMessage, bool>>, Expression<Func<MimeMessage, bool>>>> CombinationMapping = new Dictionary<CombinationMethod, Func<Expression<Func<MimeMessage, bool>>, Expression<Func<MimeMessage, bool>>, Expression<Func<MimeMessage, bool>>>>
@@ -102,40 +104,17 @@ public class Program
 					$"The folder '{tuple.Item2}' was not found. The following folders are available: {string.Join(", ", folders.Select(f => f.FullName))}");
 			}
 
-			await AddMessageToFolderAsync(destinationFolder, message, summary.Flags!.Value, summary.InternalDate!.Value);
-						
-			//Make sure inbox is still open.
-			await inbox.OpenAsync(FolderAccess.ReadWrite);
-
-			await DeleteOriginalMessageAsync(inbox, summary.UniqueId);
+			await inbox.MoveToAsync(summary.UniqueId, destinationFolder);
 		}
 
 		await inbox.CloseAsync(true);
 		await imapClient.DisconnectAsync(true);
 	}
 
-	private static Task DeleteOriginalMessageAsync(IMailFolder inbox, UniqueId uniqueId)
-	{
-		var storeRequest = new StoreFlagsRequest(StoreAction.Add, MessageFlags.Deleted)
-		{
-			Silent = true
-		};
-
-		return inbox.StoreAsync(uniqueId, storeRequest);
-	}
-
 	private static async Task LoginAsync(IImapClient client, MailSortConfig config)
 	{
 		await client.ConnectAsync(config.Host, config.NoSsl ? ImapPort : EncryptedImapPort, !config.NoSsl);
 		await client.AuthenticateAsync(config.Username, config.Password);
-	}
-
-	private static async Task AddMessageToFolderAsync(IMailFolder destinationFolder, MimeMessage message, MessageFlags flags, DateTimeOffset internalDate)
-	{
-		await destinationFolder.OpenAsync(FolderAccess.ReadWrite);
-		var appendRequest = new AppendRequest(message, flags, internalDate);
-		await destinationFolder.AppendAsync(appendRequest);
-		await destinationFolder.CloseAsync();
 	}
 
 	private static Queue<MailSortRule> GetCombinedRules(MailSortRule rule, Queue<MailSortRule> foundRules, IReadOnlyList<MailSortRule> allRules)

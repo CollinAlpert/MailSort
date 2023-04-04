@@ -34,7 +34,7 @@ public class MailSortRule
 
 public enum MatchingMethod
 {
-	Contains, Equals, ContainsIgnoreCase, EqualsIgnoreCase
+	Contains, Equals, ContainsIgnoreCase, EqualsIgnoreCase, GreaterThanOrEqual
 }
 
 public enum CombinationMethod
@@ -44,5 +44,5 @@ public enum CombinationMethod
 
 public enum Haystack
 {
-	Subject, Body, Cc, Bcc, Sender, Recipients, RecipientsAndCc, RecipientsAndBcc, CcAndBcc, RecipientsAndCcAndBcc
+	Subject, Body, Cc, Bcc, Sender, Recipients, RecipientsAndCc, RecipientsAndBcc, CcAndBcc, RecipientsAndCcAndBcc, Date
 }
